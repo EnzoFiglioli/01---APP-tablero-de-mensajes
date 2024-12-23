@@ -3,13 +3,14 @@ import { Sequelize } from "sequelize";
 
 const sequelize = new Sequelize ({
         dialect: "sqlite",
-        storage: process.env.DB_PATH
+        storage: "./database.sqlite"
     }
 );
 
 function connectDB() {
     try{
         const conn = sequelize.authenticate();
+        sequelize.sync();
         console.log("Connection has been established successfully.");
         return conn;
     }catch(err){
