@@ -4,7 +4,7 @@ import {DataTypes} from "sequelize";
 
 const avatar = process.env.AVATAR_DEFAULT;
 
-const Usuario = sequelize.define('Usuario', {
+export const Usuario = sequelize.define('Usuario', {
     id_user: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -39,5 +39,3 @@ const Usuario = sequelize.define('Usuario', {
 }, {
     tableName: 'Usuarios'
 });
-
-export default Usuario;
