@@ -2,58 +2,60 @@ process.loadEnvFile();
 import { Usuario } from "../models/Usuario.js";
 import bcrypt from "bcrypt";
 import sharp from "sharp";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
+import jwt from "jsonwebtoken";
 
-const uploadsPath = process.env.UPLOADS_PATH || path.join(__dirname, "app", "www", "uploads");
+const uploadsPath = process.env.UPLOADS_PATH || path.join(process.cwd(), "app", "www", "uploads");
 
 const crearUsuario = async (req, res) => {
     try {
-        const { password, ...newUser } = req.body;
+        const { password, email, ...newUser } = req.body;
+
+        if (!password || !email) {
+            return res.status(400).json({ msg: "Email y contraseña son obligatorios" });
+        }
 
         if (!req.file) {
-            return res.status(400).send("No file uploaded.");
+            return res.status(400).json({ msg: "No file uploaded." });
         }
 
         if (!req.file.mimetype.startsWith("image/")) {
-            return res.status(400).send("El archivo debe ser una imagen.");
+            return res.status(400).json({ msg: "El archivo debe ser una imagen." });
+        }
+
+        const existingUser = await Usuario.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ msg: "El correo ya está registrado" });
         }
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Procesar la imagen
         const processedBuffer = await sharp(req.file.buffer)
             .resize(250, 250)
             .jpeg({ quality: 80 })
             .toBuffer();
 
-        // Define el nombre y la ruta relativa del archivo
         const avatarFilename = `${req.file.fieldname}-${Date.now()}.jpeg`;
-        const avatarRelativePath = `/uploads/${avatarFilename}`; 
-        const avatarAbsolutePath = path.join(uploadsPath, avatarFilename); // Ruta absoluta para guardar
+        const avatarRelativePath = `/uploads/${avatarFilename}`;
+        const avatarAbsolutePath = path.join(uploadsPath, avatarFilename);
 
-        // Guardar la imagen comprimida
-        fs.writeFileSync(avatarAbsolutePath, processedBuffer);
+        await fs.writeFile(avatarAbsolutePath, processedBuffer);
 
-        // Guardar el usuario en la base de datos
         const usuarioCreado = await Usuario.create({
-            password: hashedPassword,
             ...newUser,
-            avatar: avatarRelativePath, // Solo guarda la ruta relativa en la BD
+            email,
+            password: hashedPassword,
+            avatar: avatarRelativePath,
         });
 
-        if (usuarioCreado) {
-            res.status(201).json({ msg: "Usuario creado", usuario: usuarioCreado });
-        } else {
-            res.status(400).json({ msg: "No se pudo crear el usuario" });
-        }
+        res.status(201).json({ msg: "Usuario creado", usuario: usuarioCreado });
     } catch (err) {
         console.error("Error al crear el usuario:", err.message);
         res.status(500).json({ msg: "Error al crear usuario" });
     }
 };
-
 
 const loginUser = async (req, res) => {
     try {
@@ -65,18 +67,28 @@ const loginUser = async (req, res) => {
 
         const usuario = await Usuario.findOne({ where: { email } });
 
-        if (usuario) {
-            const match = await bcrypt.compare(password, usuario.password);
-            if (match) {
-                res.status(200).json({ msg: "Usuario logeado", usuario });
-            } else {
-                res.status(400).json({ msg: "Usuario y/o contraseña incorrectos" });
-            }
-        } else {
-            res.status(400).json({ msg: "Usuario no encontrado" });
+        if (!usuario) {
+            return res.status(400).json({ msg: "Usuario no encontrado" });
         }
+
+        const match = await bcrypt.compare(password, usuario.password);
+        if (!match) {
+            return res.status(401).json({ msg: "Contraseña incorrecta" });
+        }
+
+        const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "1h" });
+        console.log(token);
+        
+        res.cookie("token", token, {
+            httpOnly: false,
+            secure: false,
+            sameSite: "lax",
+        });
+        
+
+        res.status(200).json({ msg: "Usuario logeado", usuario });
     } catch (err) {
-        console.error('Error al iniciar sesión:', err.message);  // Mensaje de error detallado
+        console.error("Error al iniciar sesión:", err.message);
         res.status(500).json({ msg: "Error al iniciar sesión" });
     }
 };
