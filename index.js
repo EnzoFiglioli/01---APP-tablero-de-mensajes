@@ -32,6 +32,7 @@ app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "app", "www", "uploads")));
 
 app.use("/api/usuarios", upload.single("avatar") ,userRotes); 
+app.get("/", (req,res)=>{res.json({api:"Server de tabl3ro"})})
 
 const verifyToken = (req, res, next) => {
     const token = req.cookies.token;
