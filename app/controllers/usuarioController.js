@@ -77,7 +77,6 @@ const loginUser = async (req, res) => {
         }
 
         const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "1h" });
-        console.log(token);
         
         res.cookie("token", token, {
             httpOnly: false,

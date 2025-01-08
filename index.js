@@ -51,4 +51,4 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
-export default {upload, __dirname};
+export default {upload, __dirname, verifyToken};
