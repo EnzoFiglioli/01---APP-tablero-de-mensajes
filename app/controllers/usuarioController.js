@@ -1,10 +1,12 @@
-process.loadEnvFile();
+import dotenv from "dotenv";
 import { Usuario } from "../models/Usuario.js";
 import bcrypt from "bcrypt";
 import sharp from "sharp";
 import fs from "fs/promises";
 import path from "path";
 import jwt from "jsonwebtoken";
+
+dotenv.config();
 
 const uploadsPath = process.env.UPLOADS_PATH || path.join(process.cwd(), "app", "www", "uploads");
 

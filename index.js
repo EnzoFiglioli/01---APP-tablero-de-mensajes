@@ -1,5 +1,4 @@
-process.loadEnvFile();
-
+import dotenv from "dotenv";
 import morgan from "morgan";
 import express from "express";
 import cors from "cors";
@@ -10,6 +9,8 @@ import cookieParser from "cookie-parser";
 
 import { connectDB } from "./app/config/sequelize.js";
 import userRotes from "./app/routes/usuarios.js";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
