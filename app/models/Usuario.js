@@ -1,6 +1,8 @@
-process.loadEnvFile();
+import dotenv from "dotenv";
 import {sequelize} from "../config/sequelize.js";
 import {DataTypes} from "sequelize";
+
+dotenv.config();
 
 const avatar = process.env.AVATAR_DEFAULT;
 
