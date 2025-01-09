@@ -5,7 +5,7 @@ dotenv.config();
 const mysqlUri = process.env.MYSQL_ADDON_URI;
 const sequelize = new Sequelize(mysqlUri, {
     dialect: "mysql",
-    dialectOptions: {} 
+    dialectModule: require("mysql2")
 });
 
 async function connectDB() {
