@@ -4,11 +4,12 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import path from "path";
-import {fileURLToPath} from "url";
+import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken"; // Agregado para manejo de tokens
 
 import { connectDB } from "./app/config/sequelize.js";
-import userRotes from "./app/routes/usuarios.js";
+import userRoutes from "./app/routes/usuarios.js";
 
 dotenv.config();
 
@@ -25,32 +26,38 @@ export const upload = multer({ storage: storage });
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-    origin:["http://localhost:5173","https://tabl3ro.vercel.app"],
-    credentials: true
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://tabl3ro.vercel.app"],
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "app", "www", "uploads")));
 
-app.use("/api/usuarios", upload.single("avatar") ,userRotes); 
-app.get("/", (req,res)=>{res.json({api:"Server de tabl3ro"})})
-
-const verifyToken = (req, res, next) => {
-    const token = req.cookies.token;
-    if (!token) return res.status(401).json({ msg: "Acceso denegado" });
-
-    try {
-        const verified = jwt.verify(token, process.env.SECRET_KEY);
-        req.user = verified;
-        next();
-    } catch (err) {
-        res.status(403).json({ msg: "Token inválido" });
-    }
-};
-
-app.listen(port, async () => {
-    await connectDB();
-    console.log(`Server is running on port ${port}`);
+app.use("/api/usuarios", upload.single("avatar"), userRoutes);
+app.get("/", (req, res) => {
+  res.json({ api: "Server de tabl3ro" });
 });
 
-export default {upload, __dirname, verifyToken};
+const verifyToken = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ msg: "Acceso denegado" });
+
+  try {
+    const verified = jwt.verify(token, process.env.SECRET_KEY);
+    req.user = verified;
+    next();
+  } catch (err) {
+    res.status(403).json({ msg: "Token inválido" });
+  }
+};
+
+// Iniciar el servidor
+app.listen(port, async () => {
+  await connectDB();
+  console.log(`Server is running on port ${port}`);
+});
+
+// Exportar el servidor como predeterminado
+export default app;
