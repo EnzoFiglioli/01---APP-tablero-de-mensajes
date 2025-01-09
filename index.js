@@ -26,7 +26,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin:"http://localhost:5173",
+    origin:["http://localhost:5173","https://tabl3ro.vercel.app"],
     credentials: true
 }));
 app.use(cookieParser());
@@ -48,8 +48,8 @@ const verifyToken = (req, res, next) => {
     }
 };
 
-app.listen(port, () => {
-    connectDB();
+app.listen(port, async () => {
+    await connectDB();
     console.log(`Server is running on port ${port}`);
 });
 
