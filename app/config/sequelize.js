@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
 import { Sequelize } from "sequelize";
 dotenv.config();
+import mysql from "mysql2";
 
 const mysqlUri = process.env.MYSQL_ADDON_URI;
 const sequelize = new Sequelize(mysqlUri, {
     dialect: "mysql",
-    dialectModule: require("mysql2")
+    dialectModule: mysql
 });
 
 async function connectDB() {
