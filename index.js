@@ -6,7 +6,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
-import jwt from "jsonwebtoken"; // Agregado para manejo de tokens
+import jwt from "jsonwebtoken";
 
 import { connectDB } from "./app/config/sequelize.js";
 import userRoutes from "./app/routes/usuarios.js";
@@ -53,11 +53,9 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Iniciar el servidor
 app.listen(port, async () => {
   await connectDB();
   console.log(`Server is running on port ${port}`);
 });
 
-// Exportar el servidor como predeterminado
 export default app;
