@@ -6,7 +6,6 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
-import jwt from "jsonwebtoken";
 
 import { connectDB } from "./app/config/sequelize.js";
 import userRoutes from "./app/routes/usuarios.js";
@@ -36,22 +35,10 @@ app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "app", "www", "uploads")));
 
 app.use("/api/usuarios", upload.single("avatar"), userRoutes);
+
 app.get("/", (req, res) => {
   res.json({ api: "Server de tabl3ro" });
 });
-
-const verifyToken = (req, res, next) => {
-  const token = req.cookies.token;
-  if (!token) return res.status(401).json({ msg: "Acceso denegado" });
-
-  try {
-    const verified = jwt.verify(token, process.env.SECRET_KEY);
-    req.user = verified;
-    next();
-  } catch (err) {
-    res.status(403).json({ msg: "Token inválido" });
-  }
-};
 
 app.listen(port, async () => {
   await connectDB();
