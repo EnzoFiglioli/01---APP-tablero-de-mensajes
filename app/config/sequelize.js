@@ -1,21 +1,19 @@
 import dotenv from "dotenv";
-dotenv.config();
 import { Sequelize } from "sequelize";
+dotenv.config();
 
-const sequelize = new Sequelize ({
-        dialect: "sqlite",
-        storage: "./database.sqlite"
-    }
-);
+const mysqlUri = process.env.MYSQL_ADDON_URI;
+const sequelize = new Sequelize(mysqlUri, {
+    dialect: "mysql",
+    dialectOptions: {} 
+});
 
-function connectDB() {
-    try{
-        const conn = sequelize.authenticate();
-        sequelize.sync();
-        console.log("Connection has been established successfully.");
-        return conn;
-    }catch(err){
-        console.log("Error: ", err);
+async function connectDB() {
+    try {
+        await sequelize.authenticate();
+        console.log("Conexión a la base de datos MySQL establecida correctamente.");
+    } catch (err) {
+        console.error("Error al conectar a la base de datos:", err);
         throw err;
     }
 }
