@@ -82,7 +82,7 @@ const loginUser = async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true, // Requiere HTTPS
+      // secure: true, // Requiere HTTPS
       sameSite: 'None', // Para contextos de sitios cruzados
       partitioned: true, // Aislar la cookie
   });
