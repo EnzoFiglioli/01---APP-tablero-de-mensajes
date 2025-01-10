@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
 const uploadsPath = process.env.UPLOADS_PATH || path.join(process.cwd(), "app", "www", "uploads");
 
 const crearUsuario = async (req, res) => {
@@ -82,10 +83,9 @@ const loginUser = async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      // secure: true, // Requiere HTTPS
-      sameSite: 'None', // Para contextos de sitios cruzados
-      partitioned: true, // Aislar la cookie
-  });
+      secure: isProduction, 
+      sameSite: isProduction ? 'None' : 'Lax', 
+    });
 
     res.status(200).json({ msg: "Usuario logeado", usuario });
   } catch (err) {
