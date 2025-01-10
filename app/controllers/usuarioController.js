@@ -80,11 +80,12 @@ const loginUser = async (req, res) => {
 
     const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "1h" });
 
-    res.cookie("token", token, {
+    res.cookie('token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
-    });
+      secure: true, // Requiere HTTPS
+      sameSite: 'None', // Para contextos de sitios cruzados
+      partitioned: true, // Aislar la cookie
+  });
 
     res.status(200).json({ msg: "Usuario logeado", usuario });
   } catch (err) {
