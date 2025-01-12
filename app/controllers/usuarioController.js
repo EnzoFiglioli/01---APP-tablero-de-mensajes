@@ -82,7 +82,7 @@ const loginUser = async (req, res) => {
     const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "1h" });
 
     res.cookie('token', token, {
-      httpOnly: true,
+      httpOnly: isProduction,
       secure: isProduction, 
       sameSite: isProduction ? 'None' : 'Lax', 
     });
