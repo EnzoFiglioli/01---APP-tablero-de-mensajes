@@ -107,7 +107,7 @@ const loginUser = async (req, res) => {
       sameSite: isProduction ? 'None' : 'Lax',
       maxAge: 3600000,
     });
-
+    req.cookies("token");
     res.status(200).json({ msg: "Usuario logeado", usuario });
   } catch (err) {
     console.error("Error al iniciar sesión:", err.message);
