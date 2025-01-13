@@ -85,32 +85,27 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validación de parámetros
     if (!email || !password) {
       return res.status(400).json({ msg: "Faltan email o contraseña" });
     }
 
-    // Buscar usuario en la base de datos
     const usuario = await Usuario.findOne({ where: { email } });
     if (!usuario) {
       return res.status(400).json({ msg: "Usuario no encontrado" });
     }
 
-    // Comparar la contraseña
     const match = await bcrypt.compare(password, usuario.password);
     if (!match) {
       return res.status(401).json({ msg: "Contraseña incorrecta" });
     }
 
-    // Crear el token JWT
     const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "1h" });
 
-    // Establecer la cookie con el token
     res.cookie('token', token, {
-      httpOnly: true,  // Evita el acceso desde JavaScript
-      secure: isProduction,  // Solo envía cookies a través de HTTPS en producción
-      sameSite: isProduction ? 'None' : 'Lax', // 'None' si estás trabajando con CORS (dominios diferentes)
-      maxAge: 3600000,  // Cookie válida por 1 hora
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'None' : 'Lax',
+      maxAge: 3600000,
     });
 
     res.status(200).json({ msg: "Usuario logeado", usuario });
