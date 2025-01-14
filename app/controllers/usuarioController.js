@@ -71,7 +71,7 @@ export const crearUsuario = async (req, res) => {
       ...newUser,
       email,
       password: hashedPassword,
-      avatar: avatarRelativePath,
+      avatar: isProduction ? "https://www.shutterstock.com/image-vector/avatar-gender-neutral-silhouette-vector-600nw-2526512481.jpg" : avatarRelativePath,
     });
 
     res.status(201).json({ msg: "Usuario creado", usuario: usuarioCreado });
@@ -139,3 +139,8 @@ export const logout = (req, res) => {
     res.status(500).json({ msg: "Error al cerrar sesión" });
   }
 };
+
+export const usuarios = async (req,res) => {
+  const usuarios = await Usuario.findAll()
+  res.json(usuarios)
+}
