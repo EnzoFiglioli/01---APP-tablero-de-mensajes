@@ -64,14 +64,14 @@ export const crearUsuario = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Procesar la imagen de avatar
-    const avatarRelativePath = await crearAvatar(req.file.buffer);
+    const avatarRelativePath = isProduction? "https://www.shutterstock.com/image-vector/avatar-gender-neutral-silhouette-vector-600nw-2526512481.jpg" : await crearAvatar(req.file.buffer);
 
     // Crear el usuario en la base de datos
     const usuarioCreado = await Usuario.create({
       ...newUser,
       email,
       password: hashedPassword,
-      avatar: isProduction ? "https://www.shutterstock.com/image-vector/avatar-gender-neutral-silhouette-vector-600nw-2526512481.jpg" : avatarRelativePath,
+      avatar: avatarRelativePath,
     });
 
     res.status(201).json({ msg: "Usuario creado", usuario: usuarioCreado });
@@ -113,7 +113,7 @@ export const loginUser = async (req, res) => {
       usuario: {
         id: usuario.id_user,
         email: usuario.email,
-        avatar: `${req.protocol}://${req.get("host")}${usuario.avatar}`,
+        avatar: isProduction ? usuario.avatar :`${req.protocol}://${req.get("host")}${usuario.avatar}`,
       },
     });
   } catch (err) {
