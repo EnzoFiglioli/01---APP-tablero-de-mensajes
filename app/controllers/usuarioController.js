@@ -29,7 +29,7 @@ const crearAvatar = async (buffer) => {
   return `/uploads/${avatarFilename}`;
 };
 
-const crearUsuario = async (req, res) => {
+export const crearUsuario = async (req, res) => {
   try {
     const { password, email, ...newUser } = req.body;
 
@@ -81,7 +81,7 @@ const crearUsuario = async (req, res) => {
   }
 };
 
-const loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -121,5 +121,3 @@ const loginUser = async (req, res) => {
     res.status(500).json({ msg: "Error al iniciar sesión" });
   }
 };
-
-export { crearUsuario, loginUser };

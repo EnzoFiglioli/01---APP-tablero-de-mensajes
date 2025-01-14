@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-function verifyToken(req, res, next) {
+export function verifyToken(req, res, next) {
     const token = req.cookies.token;
     if (!token) {
         return res.status(401).json({ message: "No estás autenticado." });
