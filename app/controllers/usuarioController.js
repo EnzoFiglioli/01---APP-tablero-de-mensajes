@@ -107,13 +107,16 @@ export const loginUser = async (req, res) => {
       sameSite: isProduction ? 'None' : 'Lax',
       maxAge: 3600000,
     });
+
+    const path = req.get("host").startsWith("shutterstock") ? usuario.avatar :`${req.protocol}://${req.get("host")}${usuario.avatar}`;
+
     res.status(200).json({
       msg: "Usuario logeado",
       token,
       usuario: {
         id: usuario.id_user,
         email: usuario.email,
-        avatar: isProduction ? usuario.avatar :`${req.protocol}://${req.get("host")}${usuario.avatar}`,
+        avatar: path
       },
     });
   } catch (err) {
