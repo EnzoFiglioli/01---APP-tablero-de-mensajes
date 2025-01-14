@@ -107,7 +107,15 @@ const loginUser = async (req, res) => {
       sameSite: isProduction ? 'None' : 'Lax',
       maxAge: 3600000,
     });
-    res.status(200).json({ msg: "Usuario logeado", token });
+    res.status(200).json({
+      msg: "Usuario logeado",
+      token,
+      usuario: {
+        id: usuario.id_user,
+        email: usuario.email,
+        avatar: `${req.protocol}://${req.get("host")}${usuario.avatar}`,
+      },
+    });
   } catch (err) {
     console.error("Error al iniciar sesión:", err.message);
     res.status(500).json({ msg: "Error al iniciar sesión" });

@@ -5,3 +5,5 @@ import tweetController from "../controllers/tweetController"
 const route = express.Router();
 
 route.post("/", Auth.verifyToken ,tweetController.crearTweet);
+
+export default route;

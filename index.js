@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 
 import { connectDB } from "./app/config/sequelize.js";
 import userRoutes from "./app/routes/usuarios.js";
+import tweetRoutes from "./app/routes/tweets.js";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "app", "www", "uploads")));
 
 app.use("/api/usuarios", upload.single("avatar"), userRoutes);
+app.use("/api/tweets", tweetRoutes);
 
 app.get("/", (req, res) => {
   res.json({ api: "Server de tabl3ro" });

@@ -1,0 +1,7 @@
+# LOGIN
+POST https://tabl3ro-server.vercel.app/api/usuarios/login
+Content-Type: application/json
+{
+    "email":"enzofiglioli.p@gmail.com",
+    "password":"1234"
+}
