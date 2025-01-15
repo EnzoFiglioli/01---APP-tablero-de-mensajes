@@ -2,23 +2,20 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
 const { connectDB } = require( "./app/config/sequelize.js");
+const { upload } = require("./app/middleware/setterImages.js");
+
 const userRoutes = require( "./app/routes/usuarios.js");
 const tweetRoutes = require( "./app/routes/tweets.js");
 const categoriasRoutes = require( "./app/routes/categorias.js");
 const setModels = require( "./app/middleware/modelsSetters.js");
 dotenv.config();
 
-
 const app = express();
 const port = process.env.PORT || 3000;
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
 
 // Middleware
 app.use(morgan("dev"));
@@ -54,4 +51,4 @@ app.listen(port, async () => {
   console.log(`Server is running on port ${port}`);
 });
 
-module.exports = {app, upload};
+module.exports = app;
