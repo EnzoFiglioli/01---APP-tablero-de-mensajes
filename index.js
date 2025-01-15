@@ -1,26 +1,24 @@
-import dotenv from "dotenv";
-import morgan from "morgan";
-import express from "express";
-import cors from "cors";
-import multer from "multer";
-import path from "path";
-import { fileURLToPath } from "url";
-import cookieParser from "cookie-parser";
+const dotenv = require("dotenv");
+const morgan = require("morgan");
+const express = require("express");
+const cors = require("cors");
+const multer = require("multer");
+const cookieParser = require("cookie-parser");
+const path = require("path");
 
-import { connectDB } from "./app/config/sequelize.js";
-import userRoutes from "./app/routes/usuarios.js";
-import tweetRoutes from "./app/routes/tweets.js";
-
+const { connectDB } = require( "./app/config/sequelize.js");
+const userRoutes = require( "./app/routes/usuarios.js");
+const tweetRoutes = require( "./app/routes/tweets.js");
+const categoriasRoutes = require( "./app/routes/categorias.js");
+const setModels = require( "./app/middleware/modelsSetters.js");
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 const storage = multer.memoryStorage();
-export const upload = multer({ storage: storage });
+const upload = multer({ storage: storage });
 
 // Middleware
 app.use(morgan("dev"));
@@ -43,6 +41,8 @@ app.use("/uploads", express.static(path.join(__dirname, "app", "www", "uploads")
 
 app.use("/api/usuarios", upload.single("avatar"), userRoutes);
 app.use("/api/tweets", tweetRoutes);
+app.use("/api/categorias", categoriasRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({ api: "Server de tabl3ro" });
@@ -50,7 +50,8 @@ app.get("/", (req, res) => {
 
 app.listen(port, async () => {
   await connectDB();
+  setModels;
   console.log(`Server is running on port ${port}`);
 });
 
-export default app;
+module.exports = {app, upload};

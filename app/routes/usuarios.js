@@ -1,6 +1,6 @@
-import express from "express";
-import {crearUsuario, loginUser, logout, usuarios} from "../controllers/usuarioController.js";
-import {verifyToken} from "../middleware/auth.js"
+const express = require("express");
+const {crearUsuario, loginUser, logout, usuarios} = require("../controllers/usuarioController.js");
+const {verifyToken} = require("../middleware/auth.js")
 const route = express.Router();
 
 route.post("/", crearUsuario);
@@ -8,4 +8,4 @@ route.post("/login", loginUser);
 route.get("/logout", verifyToken, logout);
 route.get("/", usuarios);
 
-export default route;
+module.exports = route;

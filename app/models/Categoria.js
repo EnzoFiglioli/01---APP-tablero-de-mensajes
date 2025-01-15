@@ -1,7 +1,7 @@
-import {DataTypes} from "sequelize";
-import {sequelize} from "../config/sequelize.js";
+const { DataTypes } = require( "sequelize");
+const { sequelize } = require( "../config/sequelize.js");
 
-export const Categoria = sequelize.define('Categoria', {
+const Categoria = sequelize.define('Categoria', {
     id_categoria: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -15,5 +15,17 @@ export const Categoria = sequelize.define('Categoria', {
         type: DataTypes.STRING(140),
         allowNull: true
     },
-    tableName: 'Categoria'
+    createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    }
+}, {
+    tableName: "Categoria",
+    timestamps: true,
 });
+
+module.exports = {Categoria}

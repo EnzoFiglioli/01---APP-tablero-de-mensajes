@@ -1,11 +1,11 @@
-import dotenv from "dotenv";
-import { Usuario } from "../models/Usuario.js";
-import bcrypt from "bcrypt";
-import sharp from "sharp";
-import fs from "fs/promises";
-import path from "path";
-import jwt from "jsonwebtoken";
-import { mkdir, existsSync } from "fs";
+const dotenv = require("dotenv");
+const {Usuario} = require("../models/Usuario.js");
+const bcrypt = require("bcrypt");
+const sharp = require("sharp");
+const fs = require("fs/promises");
+const path = require("path");
+const jwt = require("jsonwebtoken");
+const { mkdir, existsSync } = require("fs");
 
 dotenv.config();
 
@@ -25,11 +25,15 @@ const crearAvatar = async (buffer) => {
   const avatarFilename = `${Date.now()}.jpeg`;
   const avatarAbsolutePath = path.join(uploadsPath, avatarFilename);
 
-  await fs.writeFile(avatarAbsolutePath, processedBuffer);
-  return `/uploads/${avatarFilename}`;
+  if(!isProduction){
+    await fs.writeFile(avatarAbsolutePath, processedBuffer)
+    return `/uploads/${avatarFilename}`;
+  }else{
+    return;
+  }
 };
 
-export const crearUsuario = async (req, res) => {
+const crearUsuario = async (req, res) => {
   try {
     const { password, email, ...newUser } = req.body;
 
@@ -64,14 +68,14 @@ export const crearUsuario = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Procesar la imagen de avatar
-    const avatarRelativePath = isProduction? "https://www.shutterstock.com/image-vector/avatar-gender-neutral-silhouette-vector-600nw-2526512481.jpg" : await crearAvatar(req.file.buffer);
+    const avatarRelativePath = await crearAvatar(req.file.buffer);
 
     // Crear el usuario en la base de datos
     const usuarioCreado = await Usuario.create({
       ...newUser,
       email,
       password: hashedPassword,
-      avatar: avatarRelativePath,
+      avatar: isProduction ? "https://i.pinimg.com/736x/4f/27/ae/4f27aed5f2687e3da438b17001eb842e.jpg" : avatarRelativePath,
     });
 
     res.status(201).json({ msg: "Usuario creado", usuario: usuarioCreado });
@@ -81,7 +85,7 @@ export const crearUsuario = async (req, res) => {
   }
 };
 
-export const loginUser = async (req, res) => {
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -108,9 +112,9 @@ export const loginUser = async (req, res) => {
       maxAge: 3600000,
     });
 
-    const path = req.get("host").startsWith("shutterstock") ? usuario.avatar :`${req.protocol}://${req.get("host")}${usuario.avatar}`;
+    const path = req.get("host").startsWith("pinimg") ? usuario.avatar :`${req.protocol}://${req.get("host")}${usuario.avatar}`;
 
-    res.status(200).json({
+    return res.status(200).json({
       msg: "Usuario logeado",
       token,
       usuario: {
@@ -126,7 +130,7 @@ export const loginUser = async (req, res) => {
 };
 
 
-export const logout = (req, res) => {
+const logout = (req, res) => {
   try {
     const session = req.cookies.token;
     if (!session) {
@@ -143,7 +147,9 @@ export const logout = (req, res) => {
   }
 };
 
-export const usuarios = async (req,res) => {
+const usuarios = async (req,res) => {
   const usuarios = await Usuario.findAll()
   res.json(usuarios)
 }
+
+module.exports = {crearUsuario,loginUser,logout,usuarios}

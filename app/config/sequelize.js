@@ -1,7 +1,7 @@
-import dotenv from "dotenv";
-import { Sequelize } from "sequelize";
+const dotenv = require("dotenv");
+const { Sequelize } = require("sequelize");
 dotenv.config();
-import mysql from "mysql2";
+const mysql = require("mysql2");
 
 const mysqlUri = process.env.MYSQL_ADDON_URI;
 const sequelize = new Sequelize(mysqlUri, {
@@ -19,4 +19,4 @@ async function connectDB() {
     }
 }
 
-export { sequelize, connectDB };
+module.exports = { sequelize, connectDB };

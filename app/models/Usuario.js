@@ -1,12 +1,12 @@
-import dotenv from "dotenv";
-import {sequelize} from "../config/sequelize.js";
-import {DataTypes} from "sequelize";
+const dotenv = require("dotenv");
+const{ sequelize } = require("../config/sequelize.js");
+const { DataTypes } = require("sequelize");
 
 dotenv.config();
 
 const avatar = process.env.AVATAR_DEFAULT;
 
-export const Usuario = sequelize.define('Usuario', {
+const Usuario = sequelize.define('Usuario', {
     id_user: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -41,3 +41,5 @@ export const Usuario = sequelize.define('Usuario', {
 }, {
     tableName: 'Usuarios'
 });
+
+module.exports = {Usuario}

@@ -1,9 +1,10 @@
-import express from "express";
-import {verifyToken} from "../middleware/auth.js"
-import tweetController from "../controllers/tweetController.js"
+const express = require("express");
+const {verifyToken} = require("../middleware/auth.js");
+const tweetController = require("../controllers/tweetController.js");
 
 const route = express.Router();
 
 route.post("/", verifyToken , tweetController.crearTweet);
+route.get("/", verifyToken , tweetController.obtenerTweets);
 
-export default route;
+module.exports = route;

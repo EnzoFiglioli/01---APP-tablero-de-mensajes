@@ -1,10 +1,11 @@
-import dotenv from "dotenv";
-import {sequelize} from "../config/sequelize.js";
-import {DataTypes} from "sequelize";
+const dotenv = require("dotenv");
+const { DataTypes } = require( "sequelize");
+const { sequelize } = require( "../config/sequelize.js");
+
 dotenv.config();
 const avatar = process.env.AVATAR_DEFAULT;
 
-export const Tweet = sequelize.define('Tweet', {
+const Tweet = sequelize.define('Tweet', {
     id_tweet: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -12,10 +13,9 @@ export const Tweet = sequelize.define('Tweet', {
     },
     id_user: {
         type: DataTypes.INTEGER,
-        unique: true,
         allowNull: false,
         references: {
-            model: 'Usuario',
+            model: 'Usuarios', // Nombre de la tabla de Usuarios en plural
             key: 'id_user'
         }
     }, 
@@ -37,7 +37,11 @@ export const Tweet = sequelize.define('Tweet', {
     },
     created_at: {
         type: DataTypes.DATE,
+        defaultValue: sequelize.NOW, // Esto establece la fecha de creación automáticamente
         allowNull: false
-    },
-    tableName: 'Tweet',
+    }
+}, {
+    tableName: "Tweet"
 });
+
+module.exports = {Tweet}
