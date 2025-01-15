@@ -40,16 +40,16 @@ async function crearTweet(req, res) {
 const obtenerTweets = async (req, res) => {
     try {
         const tweets = await Tweet.findAll(
-        //     {
-        //     include: [{
-        //         model: Usuario,
-        //         attributes: ['username', 'avatar'],
-        //     },{
-        //         model: Categoria,
-        //         attributes: ['nombre']
-        //     }],
-        //     attributes: ['updatedAt', 'content'],
-        // }
+            {
+            include: [{
+                model: Usuario,
+                attributes: ['username', 'avatar'],
+            },{
+                model: Categoria,
+                attributes: ['nombre']
+            }],
+            attributes: ['updatedAt', 'content'],
+        }
     );
 
         if (tweets.length > 0) {
