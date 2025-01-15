@@ -1,36 +1,25 @@
 const {Usuario} = require("../models/Usuario.js");
 const {Tweet}  = require("../models/Tweet.js");
 const Categoria = require("../models/Categoria.js");
+const { sequelize } = require("../config/sequelize.js");
 
-async function userActive(userId) {
-    try {
-        const user = await Usuario.findByPk(userId);
-        if (!user) {
-            throw new Error("Usuario no encontrado.");
-        }
-        return user;
-    } catch (error) {
-        console.error("Error en userActive:", error.message);
-        throw error;
-    }
-}
 
 async function crearTweet(req, res) {
     try {
-        const { userId, content } = req.body;
-        if (!userId || !content) {
+        const userActive = req.cookies("token");
+        const { content } = req.body;
+        if (!content) {
             return res.status(400).json({ message: "Faltan datos necesarios." });
         }
 
-        const user = await userActive(userId);
+        const tweet = 
+            `INSERT INTO Tweets(id_usuario,content,categoria,image)VALUES(${userActive},${content},4,"");`; 
+            const tweeteando = await sequelize.query(tweet);
+            if(tweeteando){
+                return res.status(201).json({ message: "Tweet creado exitosamente.", tweet });
+            }
+        return res.status(400).json({msg:"Erro al tweetear"})
 
-        const tweet = {
-            userId: user.id,
-            content: content,
-            createdAt: new Date(),
-        };
-
-        return res.status(201).json({ message: "Tweet creado exitosamente.", tweet });
     } catch (error) {
         console.error("Error en crearTweet:", error.message);
         return res.status(500).json({ message: "Error al crear el tweet." });
@@ -39,18 +28,11 @@ async function crearTweet(req, res) {
 
 const obtenerTweets = async (req, res) => {
     try {
-        const tweets = await Tweet.findAll(
-            {
-            include: [{
-                model: Usuario,
-                attributes: ['username', 'avatar'],
-            },{
-                model: Categoria,
-                attributes: ['nombre']
-            }],
-            attributes: ['updatedAt', 'content'],
-        }
-    );
+        const tweets = await sequelize.query(`
+             SELECT c.nombre as categoria, u.username, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
+            INNER JOIN Categoria c on t.categoria = id_categoria
+            INNER JOIN Usuarios u on u.id_user = t.id_user;
+            `)
 
         if (tweets.length > 0) {
             return res.json(tweets);
@@ -64,4 +46,4 @@ const obtenerTweets = async (req, res) => {
 };
 
 
-module.exports = { userActive, crearTweet, obtenerTweets };
+module.exports = { crearTweet, obtenerTweets };
