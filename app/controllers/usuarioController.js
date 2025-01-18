@@ -112,15 +112,13 @@ const loginUser = async (req, res) => {
       maxAge: 3600000,
     });
 
-    const path = req.get("host").startsWith("pinimg") ? usuario.avatar :`${req.protocol}://${req.get("host")}${usuario.avatar}`;
-
     return res.status(200).json({
       msg: "Usuario logeado",
       token,
       usuario: {
         id: usuario.id_user,
         email: usuario.email,
-        avatar: path,
+        avatar: usuario.avatar,
         username: usuario.username
       },
     });
