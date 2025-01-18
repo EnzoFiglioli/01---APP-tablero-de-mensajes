@@ -15,7 +15,7 @@ const Tweet = sequelize.define('Tweet', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'Usuarios', // Nombre de la tabla de Usuarios en plural
+            model: 'Usuario', // Nombre de la tabla de Usuarios en plural
             key: 'id_user'
         }
     }, 
@@ -35,11 +35,6 @@ const Tweet = sequelize.define('Tweet', {
         type: DataTypes.STRING(140),
         allowNull: true 
     },
-    created_at: {
-        type: DataTypes.DATE,
-        defaultValue: sequelize.NOW, // Esto establece la fecha de creación automáticamente
-        allowNull: false
-    }
 }, {
     tableName: "Tweet"
 });

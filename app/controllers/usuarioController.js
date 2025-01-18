@@ -120,7 +120,8 @@ const loginUser = async (req, res) => {
       usuario: {
         id: usuario.id_user,
         email: usuario.email,
-        avatar: path
+        avatar: path,
+        username: usuario.username
       },
     });
   } catch (err) {

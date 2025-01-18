@@ -43,7 +43,7 @@ async function crearTweet(req, res) {
 const obtenerTweets = async (req, res) => {
     try {
         const tweets = await sequelize.query(`
-             SELECT c.nombre as categoria, u.username, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
+             SELECT t.id_tweet, c.nombre as categoria, u.username, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
             INNER JOIN Categoria c on t.categoria = id_categoria
             INNER JOIN Usuarios u on u.id_user = t.id_user
             ORDER BY t.createdAt DESC;
@@ -60,5 +60,38 @@ const obtenerTweets = async (req, res) => {
     }
 };
 
+const hashtagsTweets = async (req,res) => {
+    try{
+        const tweets = (await sequelize.query("SELECT content from Tweets WHERE content LIKE '%#%';",{type:sequelize.QueryTypes.SELECT})).flat();
+        const regex = /#\w+/g;
+        const hashtags = [];
+        
+        if(tweets){
+            tweets.forEach((contenido)=>{      
+                const msg = contenido.content;
+                const result = msg.match(regex);
+                hashtags.push(result)
+            });
+            res.json(hashtags);
+        }else{
+            res.status(404).json({msg:"Aún no hay ningún hashtag."});
+        }        
+    }catch{
+        res.status(500).json({msg:"Error al intentar traer los hashtags"});
+    }
+}
 
-module.exports = { crearTweet, obtenerTweets };
+const eliminarTweet = async (req,res)=>{
+    try{
+        const id = req.params.id;
+        const query = sequelize.query(`DELETE FROM Tweets WHERE id_tweet = ${id}`);
+        console.log(query);
+        if(query) return res.status(201).json({msg:"Mensaje elimnado correctamente"});
+        res.status(404).json({msg:"Error al encontrar tweet con ese id"});
+    }catch(err){
+        console.log({err});
+        res.status(500).json({msg:"No se pudo eliminar tweet, error en el server."});
+    }
+}
+
+module.exports = { crearTweet, obtenerTweets, hashtagsTweets, eliminarTweet };
