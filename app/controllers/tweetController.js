@@ -4,6 +4,23 @@ const Categoria = require("../models/Categoria.js");
 const { sequelize } = require("../config/sequelize.js");
 const jwt = require("jsonwebtoken")
 
+const formatearFecha = (fechaMensaje) => {
+    const fechaActual = new Date();
+    const fechaMsg = new Date(fechaMensaje);
+    const diferencia = fechaActual - fechaMsg;
+    const diasDiferencia = diferencia / (1000 * 3600 * 24);
+
+    if (fechaActual.toDateString() === fechaMsg.toDateString()) {
+      return "Hoy";
+    }
+
+    if (diasDiferencia < 7) {
+      return fechaMsg.toLocaleDateString();
+    } else {
+      const semanas = Math.floor(diasDiferencia / 7);
+      return `${semanas} semana(s) atrás`;
+    }
+  };
 
 async function crearTweet(req, res) {
     try {
@@ -39,7 +56,6 @@ async function crearTweet(req, res) {
     }
 }
 
-
 const obtenerTweets = async (req, res) => {
     try {
         const tweets = await sequelize.query(`
@@ -50,7 +66,16 @@ const obtenerTweets = async (req, res) => {
             `,{type: sequelize.QueryTypes.SELECT})
 
         if (tweets.length > 0) {
-            return res.json(tweets);
+            const tweetsList = tweets.map((i)=>(
+                {
+                    createdAt : formatearFecha(i.createdAt),
+                    id_tweet: i.id_tweet,
+                    categoria: i.categoria,
+                    username: i.username,
+                    content: i.content,
+                    avatar: i.avatar
+                }));
+            return res.json(tweetsList);
         } else {
             return res.status(204).json({ msg: "No se encontraron tweets, sé el primero." });
         }
@@ -94,4 +119,31 @@ const eliminarTweet = async (req,res)=>{
     }
 }
 
-module.exports = { crearTweet, obtenerTweets, hashtagsTweets, eliminarTweet };
+const obtenerTweetsID = async(req,res)=>{
+    try{
+        const username = req.params.username;
+        const query = await sequelize.query(`SELECT t.id_tweet, c.nombre as categoria, u.username, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
+            INNER JOIN Categoria c on t.categoria = id_categoria
+            INNER JOIN Usuarios u on u.id_user = t.id_user
+            WHERE u.username = "${username}"
+            ORDER BY t.createdAt DESC;`,{type:sequelize.QueryTypes.SELECT});
+            if (query.length > 0) {
+                const tweetsList = query.map((i)=>(
+                    {
+                        createdAt : formatearFecha(i.createdAt),
+                        id_tweet: i.id_tweet,
+                        categoria: i.categoria,
+                        username: i.username,
+                        content: i.content,
+                        avatar: i.avatar
+                    }));
+                return res.json(tweetsList);
+            }
+        res.status(404).json({msg:`No se encontro ningun usuario con el nombre ${username}`});
+    }catch(err){
+        console.log(err);
+        res.status(500).json({msg:`Error interno al obtener tweets para el usuario: ${err}`});
+    }
+}
+
+module.exports = { crearTweet, obtenerTweets, hashtagsTweets, eliminarTweet, obtenerTweetsID };

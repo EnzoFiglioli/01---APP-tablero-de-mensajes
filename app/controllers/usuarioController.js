@@ -6,6 +6,7 @@ const fs = require("fs/promises");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const { mkdir, existsSync } = require("fs");
+const { sequelize } = require("../config/sequelize.js");
 
 dotenv.config();
 
@@ -146,9 +147,48 @@ const logout = (req, res) => {
   }
 };
 
+const eliminarUsuario = async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const query = await Usuario.findByPk(id);
+    if(query && query == req.cookies.token){
+      fs.rm(path.join(__dirname,"..","www",query.get("avatar")),{recursive:true});
+      const usuario = await Usuario.destroy(id);
+      if(usuario){
+        res.json({msg:"Usuario eliminado con exito"});
+      }
+      res.status(404).json({msg:"Error al eliminar usuario"});
+    }
+  }catch(err){
+    res.status(500).json({msg:`Error en el servidor al eliminar usuario: ${err}`});
+  }
+}
+
 const usuarios = async (req,res) => {
   const usuarios = await Usuario.findAll()
   res.json(usuarios)
 }
 
-module.exports = {crearUsuario,loginUser,logout,usuarios}
+const usuarioPorUsername = async(req,res)=>{
+  try{
+    const {username} = req.params;
+    console.log({username});
+    const user = await Usuario.findOne({where:{username: username}});
+    const response = {
+      username: user.username,
+      email: user.email,
+      name: user.name,
+      lastname: user.lastname,
+      avatar: user.avatar
+    }
+
+    if(!user){
+      return res.status(404).json({msg:"Usuario no encontrado"});
+    }
+    return res.json(response);
+  }catch(err){
+    res.status(500).json({msg:`Error interno al traer usuario por id: ${err}`});
+  }
+}
+
+module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios}
