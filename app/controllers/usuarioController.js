@@ -175,6 +175,7 @@ const usuarioPorUsername = async(req,res)=>{
     console.log({username});
     const user = await Usuario.findOne({where:{username: username}});
     const response = {
+      id: user.id_user,
       username: user.username,
       email: user.email,
       name: user.name,
