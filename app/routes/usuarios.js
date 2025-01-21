@@ -10,7 +10,7 @@ route.get("/logout", verifyToken, logout);
 route.get("/", verifyToken, usuarios);
 route.delete("/:id", verifyToken, eliminarUsuario);
 route.get("/:username", verifyToken, usuarioPorUsername);
-route.get("/follow/:id", verifyToken, crearSeguidor);
-route.get("/follow/info/:username", seguimientosUsuariosCantidad);
+route.post("/follow", verifyToken, crearSeguidor);
+route.get("/follow/info/:username", verifyToken, seguimientosUsuariosCantidad);
 
 module.exports = route;

@@ -12,6 +12,8 @@ const userRoutes = require( "./app/routes/usuarios.js");
 const tweetRoutes = require( "./app/routes/tweets.js");
 const categoriasRoutes = require( "./app/routes/categorias.js");
 const setModels = require( "./app/middleware/modelsSetters.js");
+const { verifyToken } = require("./app/middleware/auth.js");
+const { verify } = require("crypto");
 dotenv.config();
 
 const app = express();
@@ -42,7 +44,7 @@ app.use("/api/categorias", categoriasRoutes);
 
 
 app.get("/", (req, res) => {
-  res.json({ api: "Server de tabl3ro" });
+  res.json({ api: "Server de tabl3ro"});
 });
 
 app.listen(port, async () => {

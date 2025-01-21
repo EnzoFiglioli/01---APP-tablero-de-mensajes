@@ -104,13 +104,13 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ msg: "Contraseña incorrecta" });
     }
 
-    const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "3d" });
 
     res.cookie('token', token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'None' : 'Lax',
-      maxAge: 3600000,
+      maxAge: 259200000
     });
 
     return res.status(200).json({
