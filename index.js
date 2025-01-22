@@ -11,6 +11,8 @@ const { upload } = require("./app/middleware/setterImages.js");
 const userRoutes = require( "./app/routes/usuarios.js");
 const tweetRoutes = require( "./app/routes/tweets.js");
 const categoriasRoutes = require( "./app/routes/categorias.js");
+const likeRoutes = require("./app/routes/likes.js");
+
 const setModels = require( "./app/middleware/modelsSetters.js");
 const { verifyToken } = require("./app/middleware/auth.js");
 const { verify } = require("crypto");
@@ -41,7 +43,7 @@ app.use("/uploads", express.static(path.join(__dirname, "app", "www", "uploads")
 app.use("/api/usuarios", upload.single("avatar"), userRoutes);
 app.use("/api/tweets", tweetRoutes);
 app.use("/api/categorias", categoriasRoutes);
-
+app.use("/api/like", likeRoutes);
 
 app.get("/", (req, res) => {
   res.json({ api: "Server de tabl3ro"});

@@ -4,24 +4,6 @@ const Categoria = require("../models/Categoria.js");
 const { sequelize } = require("../config/sequelize.js");
 const jwt = require("jsonwebtoken")
 
-const formatearFecha = (fechaMensaje) => {
-    const fechaActual = new Date();
-    const fechaMsg = new Date(fechaMensaje);
-    const diferencia = fechaActual - fechaMsg;
-    const diasDiferencia = diferencia / (1000 * 3600 * 24);
-
-    if (fechaActual.toDateString() === fechaMsg.toDateString()) {
-      return "Hoy";
-    }
-
-    if (diasDiferencia < 7) {
-      return fechaMsg.toLocaleDateString();
-    } else {
-      const semanas = Math.floor(diasDiferencia / 7);
-      return `${semanas} semana(s) atrás`;
-    }
-  };
-
 async function crearTweet(req, res) {
     try {
         const userActive = req.user.id;
@@ -68,7 +50,7 @@ const obtenerTweets = async (req, res) => {
         if (tweets.length > 0) {
             const tweetsList = tweets.map((i)=>(
                 {
-                    createdAt : formatearFecha(i.createdAt),
+                    createdAt : i.createdAt,
                     id_tweet: i.id_tweet,
                     categoria: i.categoria,
                     username: i.username,

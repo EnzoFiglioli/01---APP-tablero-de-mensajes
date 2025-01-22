@@ -6,7 +6,13 @@ const mysql = require("mysql2");
 const mysqlUri = process.env.MYSQL_ADDON_URI;
 const sequelize = new Sequelize(mysqlUri, {
     dialect: "mysql",
-    dialectModule: mysql
+    dialectModule: mysql,
+    pool:{
+        max:10,
+        min:0,
+        acquire:30000,
+        idle:10000  
+    }
 });
 
 async function connectDB() {
