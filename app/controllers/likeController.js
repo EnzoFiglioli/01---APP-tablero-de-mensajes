@@ -30,9 +30,24 @@ const crearLike = async(req,res) =>{
 const obtenerLikesInfoUser = async(req,res)=>{
     try{
         const user = req.user.id;
-        const likesUser = await Likes.findOne({where:{id_user: user}});
+        const likesUser = await Likes.findAll({where:{id_user: user}});
+        const tweetsConLikes = await Likes.findAll({
+            attributes: [
+              'id_tweet',                     
+              [sequelize.fn('COUNT', sequelize.fn('DISTINCT', sequelize.col('id_user'))), 'cantidad']  
+            ],
+            group: ['id_tweet'],
+            raw: true,
+          });
+          
+          if (tweetsConLikes.length === 0) {
+            return res.json({ msg: "No hay tweets con likes" });
+          }
+
         if(!likesUser) return res.json({msg:"El usuario no ha dado ningun Like"});
-        return res.json(likesUser);
+        
+        const response = likesUser.flat();
+        return res.json({likesUser, likesCount:tweetsConLikes, response});
     }catch(err){
         res.status(500).json({msg:`Error al obtener los likes: ${err}`});
     }
