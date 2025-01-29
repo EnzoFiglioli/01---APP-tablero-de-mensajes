@@ -112,7 +112,7 @@ const obtenerTweetsID = async(req,res)=>{
             if (query.length > 0) {
                 const tweetsList = query.map((i)=>(
                     {
-                        createdAt : formatearFecha(i.createdAt),
+                        createdAt : i.createdAt,
                         id_tweet: i.id_tweet,
                         categoria: i.categoria,
                         username: i.username,

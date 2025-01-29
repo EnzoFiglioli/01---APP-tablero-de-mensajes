@@ -120,6 +120,8 @@ const loginUser = async (req, res) => {
         id: usuario.id_user,
         email: usuario.email,
         avatar: usuario.avatar,
+        name: usuario.name,
+        lastname: usuario.lastname,
         username: usuario.username
       },
     });
@@ -137,7 +139,6 @@ const logout = (req, res) => {
       return res.status(404).json({ msg: "No existe una sesión activa" });
     }
 
-    // Si existe la sesión, borrar la cookie
     res.clearCookie("token");
 
     return res.status(200).json({ msg: "Sesión cerrada correctamente" });
