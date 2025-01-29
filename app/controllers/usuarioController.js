@@ -148,6 +148,33 @@ const logout = (req, res) => {
   }
 };
 
+const editarUsuario = async(req,res)=>{
+  try{
+    const {id, username, name, lastname, email,password} = req.body;
+    const user = req.user.id;
+    const match = await Usuario.findByPk(id);
+
+    if(!id || !username || !lastname || !name || !email || !password){
+      res.status(400).json({msg:"Es requerido completar estos campos"});
+    }
+
+    if(match.id == user){
+      match.update({
+        username:username,
+        email:email,
+        name:name,
+        lastname:lastname,
+        password:password
+      });
+      return res.json({msg:"Usuario actualizado correctamente",user:match});
+    }
+    return res.status(404).json({msg:"Usuario no encontrado"});
+  }catch(err){
+    console.log({err});
+    return res.status(500).json({msg:"Error al editar el usuario"});
+  }
+}
+
 const eliminarUsuario = async(req,res)=>{
   try{
     const id = req.params.id;
@@ -193,4 +220,4 @@ const usuarioPorUsername = async(req,res)=>{
   }
 }
 
-module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios}
+module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario}

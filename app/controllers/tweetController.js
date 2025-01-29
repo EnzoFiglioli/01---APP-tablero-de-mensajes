@@ -41,7 +41,7 @@ async function crearTweet(req, res) {
 const obtenerTweets = async (req, res) => {
     try {
         const tweets = await sequelize.query(`
-             SELECT t.id_tweet, c.nombre as categoria, u.username, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
+             SELECT t.id_tweet, c.nombre as categoria, u.username, u.name, u.lastname, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
             INNER JOIN Categoria c on t.categoria = id_categoria
             INNER JOIN Usuarios u on u.id_user = t.id_user
             ORDER BY t.createdAt DESC;
@@ -52,6 +52,8 @@ const obtenerTweets = async (req, res) => {
                 {
                     createdAt : i.createdAt,
                     id_tweet: i.id_tweet,
+                    name: i.name,
+                    lastname: i.lastname,
                     categoria: i.categoria,
                     username: i.username,
                     content: i.content,
