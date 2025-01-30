@@ -1,54 +1,22 @@
 const dotenv = require("dotenv");
-const {Usuario} = require("../models/Usuario.js");
+const { Usuario } = require("../models/Usuario.js");
 const bcrypt = require("bcrypt");
-const sharp = require("sharp");
-const fs = require("fs/promises");
-const path = require("path");
 const jwt = require("jsonwebtoken");
-const { mkdir, existsSync } = require("fs");
 const { sequelize } = require("../config/sequelize.js");
-const {Likes} = require("../models/Likes.js");
-const {Tweet} = require("../models/Tweet.js");
+const { Likes } = require("../models/Likes.js");
+const { Tweet } = require("../models/Tweet.js");
 dotenv.config();
 
 const isProduction = process.env.NODE_ENV === 'production';
-const uploadsPath = process.env.UPLOADS_PATH || path.join(process.cwd(), "app", "www", "uploads");
-
-if (!existsSync(uploadsPath)) {
-  mkdir(uploadsPath, { recursive: true }); 
-}
-
-const crearAvatar = async (buffer) => {
-  const processedBuffer = await sharp(buffer)
-    .resize(250, 250)
-    .jpeg({ quality: 80 })
-    .toBuffer();
-
-  const avatarFilename = `${Date.now()}.jpeg`;
-  const avatarAbsolutePath = path.join(uploadsPath, avatarFilename);
-
-  if(!isProduction){
-    await fs.writeFile(avatarAbsolutePath, processedBuffer)
-    return `/uploads/${avatarFilename}`;
-  }else{
-    return;
-  }
-};
 
 const crearUsuario = async (req, res) => {
   try {
-    const { password, email, ...newUser } = req.body;
+    const { password, email, avatar, ...newUser } = req.body;
 
     if (!password || !email) {
       return res.status(400).json({ msg: "Email y contraseña son obligatorios" });
     }
-    if (!req.file) {
-      return res.status(400).json({ msg: "No file uploaded." });
-    }
 
-    if (!req.file.mimetype.startsWith("image/")) {
-      return res.status(400).json({ msg: "El archivo debe ser una imagen." });
-    }
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ msg: "Email no válido" });
@@ -62,13 +30,11 @@ const crearUsuario = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const avatarRelativePath = await crearAvatar(req.file.buffer);
-
     const usuarioCreado = await Usuario.create({
       ...newUser,
       email,
       password: hashedPassword,
-      avatar: isProduction ? "https://i.pinimg.com/736x/4f/27/ae/4f27aed5f2687e3da438b17001eb842e.jpg" : avatarRelativePath,
+      avatar: avatar || "https://i.pinimg.com/736x/4f/27/ae/4f27aed5f2687e3da438b17001eb842e.jpg"
     });
 
     res.status(201).json({ msg: "Usuario creado", usuario: usuarioCreado });
@@ -97,7 +63,6 @@ const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "3d" });
-    console.log(usuario);
     res.cookie('token', token, {
       httpOnly: true,
       secure: isProduction,
@@ -124,7 +89,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-
 const logout = (req, res) => {
   try {
     const session = req.cookies.token;
@@ -133,49 +97,10 @@ const logout = (req, res) => {
     }
 
     res.clearCookie("token");
-
     return res.status(200).json({ msg: "Sesión cerrada correctamente" });
   } catch (err) {
     console.error("Error al cerrar sesión:", err.message);
     res.status(500).json({ msg: "Error al cerrar sesión" });
-  }
-};
-
-const editarUsuario = async (req, res) => {
-  try {
-    const { id, username, name, lastname, email, password } = req.body;
-    const user = req.user.id;
-
-    if (!id || !lastname || !name || !email) {
-      return res.status(400).json({ msg: "Es requerido completar estos campos" });
-    }
-
-    const match = await Usuario.findByPk(id);
-    if (!match) {
-      return res.status(404).json({ msg: "Usuario no encontrado" });
-    }
-
-    if (match.id_user !== user) {
-      match.flat();
-      console.log({match: match, user})
-      return res.status(403).json({ msg: "No tienes permisos para editar este usuario" });
-    }
-
-    await match.update({
-      username,
-      email,
-      name,
-      lastname,
-      password
-    });
-
-    return res.json({ msg: "Usuario actualizado correctamente", user: match });
-    
-  } catch (err) {
-    console.error("Error en editarUsuario:", err);
-    if (!res.headersSent) {
-      return res.status(500).json({ msg: "Error al editar el usuario" });
-    }
   }
 };
 
@@ -192,43 +117,33 @@ const eliminarUsuario = async (req, res) => {
       return res.status(403).json({ msg: "No tienes permisos para eliminar este usuario" });
     }
 
-    console.log('ID del usuario:', id);
-    console.log('Usuario encontrado:', query);
-await Likes.destroy({
-  where: { id_user: id }
-});
-
-await Tweet.destroy({
-  where: { id_user: id }
-});
-
-await Usuario.destroy({
-  where: { id_user: id }
-});
-
-    await query.destroy({where:{id_user: id}});
+    await Likes.destroy({ where: { id_user: id } });
+    await Tweet.destroy({ where: { id_user: id } });
+    await Usuario.destroy({ where: { id_user: id } });
     
-    console.log('Usuario eliminado con éxito');
     res.clearCookie("token");
     return res.json({ msg: "Usuario eliminado con éxito" });
-
   } catch (err) {
     console.error(err); 
     res.status(500).json({ msg: `Error en el servidor al eliminar usuario: ${err}` });
   }
 };
 
-const usuarios = async (req,res) => {
-  const usuarios = await Usuario.findAll()
-  res.json(usuarios)
-}
+const usuarios = async (req, res) => {
+  const usuarios = await Usuario.findAll();
+  res.json(usuarios);
+};
 
-const usuarioPorUsername = async(req,res)=>{
-  try{
-    const {username} = req.params;
-    console.log({username});
-    const user = await Usuario.findOne({where:{username: username}});
-    const response = {
+const usuarioPorUsername = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await Usuario.findOne({ where: { username } });
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    return res.json({
       id: user.id_user,
       username: user.username,
       email: user.email,
@@ -236,15 +151,10 @@ const usuarioPorUsername = async(req,res)=>{
       lastname: user.lastname,
       avatar: user.avatar,
       verification: user.verification
-    }
-
-    if(!user){
-      return res.status(404).json({msg:"Usuario no encontrado"});
-    }
-    return res.json(response);
-  }catch(err){
-    res.status(500).json({msg:`Error interno al traer usuario por id: ${err}`});
+    });
+  } catch (err) {
+    res.status(500).json({ msg: `Error interno al traer usuario por username: ${err}` });
   }
-}
+};
 
-module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario}
+module.exports = { crearUsuario, loginUser, logout, eliminarUsuario, usuarioPorUsername, usuarios };
