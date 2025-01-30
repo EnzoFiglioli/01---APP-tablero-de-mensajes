@@ -7,7 +7,8 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const { mkdir, existsSync } = require("fs");
 const { sequelize } = require("../config/sequelize.js");
-
+const {Likes} = require("../models/Likes.js");
+const {Tweet} = require("../models/Tweet.js");
 dotenv.config();
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -38,12 +39,9 @@ const crearUsuario = async (req, res) => {
   try {
     const { password, email, ...newUser } = req.body;
 
-    // Validación de parámetros requeridos
     if (!password || !email) {
       return res.status(400).json({ msg: "Email y contraseña son obligatorios" });
     }
-
-    // Validación de existencia de archivo de imagen
     if (!req.file) {
       return res.status(400).json({ msg: "No file uploaded." });
     }
@@ -51,27 +49,21 @@ const crearUsuario = async (req, res) => {
     if (!req.file.mimetype.startsWith("image/")) {
       return res.status(400).json({ msg: "El archivo debe ser una imagen." });
     }
-
-    // Validación de formato de email
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ msg: "Email no válido" });
     }
 
-    // Verificar si el usuario ya existe
     const existingUser = await Usuario.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ msg: "El correo ya está registrado" });
     }
 
-    // Encriptación de la contraseña
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Procesar la imagen de avatar
     const avatarRelativePath = await crearAvatar(req.file.buffer);
 
-    // Crear el usuario en la base de datos
     const usuarioCreado = await Usuario.create({
       ...newUser,
       email,
@@ -105,7 +97,7 @@ const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign({ id: usuario.id_user }, process.env.SECRET_KEY, { expiresIn: "3d" });
-
+    console.log(usuario);
     res.cookie('token', token, {
       httpOnly: true,
       secure: isProduction,
@@ -122,7 +114,8 @@ const loginUser = async (req, res) => {
         avatar: usuario.avatar,
         name: usuario.name,
         lastname: usuario.lastname,
-        username: usuario.username
+        username: usuario.username,
+        verification: usuario.verification
       },
     });
   } catch (err) {
@@ -148,49 +141,82 @@ const logout = (req, res) => {
   }
 };
 
-const editarUsuario = async(req,res)=>{
-  try{
-    const {id, username, name, lastname, email,password} = req.body;
+const editarUsuario = async (req, res) => {
+  try {
+    const { id, username, name, lastname, email, password } = req.body;
     const user = req.user.id;
+
+    if (!id || !lastname || !name || !email) {
+      return res.status(400).json({ msg: "Es requerido completar estos campos" });
+    }
+
     const match = await Usuario.findByPk(id);
-
-    if(!id || !username || !lastname || !name || !email || !password){
-      res.status(400).json({msg:"Es requerido completar estos campos"});
+    if (!match) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
     }
 
-    if(match.id == user){
-      match.update({
-        username:username,
-        email:email,
-        name:name,
-        lastname:lastname,
-        password:password
-      });
-      return res.json({msg:"Usuario actualizado correctamente",user:match});
+    if (match.id_user !== user) {
+      match.flat();
+      console.log({match: match, user})
+      return res.status(403).json({ msg: "No tienes permisos para editar este usuario" });
     }
-    return res.status(404).json({msg:"Usuario no encontrado"});
-  }catch(err){
-    console.log({err});
-    return res.status(500).json({msg:"Error al editar el usuario"});
+
+    await match.update({
+      username,
+      email,
+      name,
+      lastname,
+      password
+    });
+
+    return res.json({ msg: "Usuario actualizado correctamente", user: match });
+    
+  } catch (err) {
+    console.error("Error en editarUsuario:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ msg: "Error al editar el usuario" });
+    }
   }
-}
+};
 
-const eliminarUsuario = async(req,res)=>{
-  try{
+const eliminarUsuario = async (req, res) => {
+  try {
     const id = req.params.id;
     const query = await Usuario.findByPk(id);
-    if(query && query == req.cookies.token){
-      fs.rm(path.join(__dirname,"..","www",query.get("avatar")),{recursive:true});
-      const usuario = await Usuario.destroy(id);
-      if(usuario){
-        res.json({msg:"Usuario eliminado con exito"});
-      }
-      res.status(404).json({msg:"Error al eliminar usuario"});
+
+    if (!query) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
     }
-  }catch(err){
-    res.status(500).json({msg:`Error en el servidor al eliminar usuario: ${err}`});
+
+    if (query.id_user !== req.user.id) {
+      return res.status(403).json({ msg: "No tienes permisos para eliminar este usuario" });
+    }
+
+    console.log('ID del usuario:', id);
+    console.log('Usuario encontrado:', query);
+await Likes.destroy({
+  where: { id_user: id }
+});
+
+await Tweet.destroy({
+  where: { id_user: id }
+});
+
+await Usuario.destroy({
+  where: { id_user: id }
+});
+
+    await query.destroy({where:{id_user: id}});
+    
+    console.log('Usuario eliminado con éxito');
+    res.clearCookie("token");
+    return res.json({ msg: "Usuario eliminado con éxito" });
+
+  } catch (err) {
+    console.error(err); 
+    res.status(500).json({ msg: `Error en el servidor al eliminar usuario: ${err}` });
   }
-}
+};
 
 const usuarios = async (req,res) => {
   const usuarios = await Usuario.findAll()
@@ -208,7 +234,8 @@ const usuarioPorUsername = async(req,res)=>{
       email: user.email,
       name: user.name,
       lastname: user.lastname,
-      avatar: user.avatar
+      avatar: user.avatar,
+      verification: user.verification
     }
 
     if(!user){

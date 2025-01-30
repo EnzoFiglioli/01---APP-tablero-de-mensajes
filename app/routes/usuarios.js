@@ -9,7 +9,7 @@ route.post("/login", loginUser);
 route.get("/logout", verifyToken, logout);
 route.get("/", verifyToken, usuarios);
 route.delete("/:id", verifyToken, eliminarUsuario);
-route.patch("/", verifyToken, editarUsuario);
+route.patch("/editar", verifyToken, editarUsuario);
 route.get("/:username", verifyToken, usuarioPorUsername);
 route.post("/follow", verifyToken, crearSeguidor);
 route.get("/follow/info/:username", verifyToken, seguimientosUsuariosCantidad);

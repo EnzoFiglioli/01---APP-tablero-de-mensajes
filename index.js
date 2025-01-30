@@ -34,7 +34,7 @@ app.use(
       "Authorization",
       "x-csrf-token",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE","PATCH"],
   })
 );
 app.use(cookieParser());
