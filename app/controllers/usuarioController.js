@@ -157,4 +157,43 @@ const usuarioPorUsername = async (req, res) => {
   }
 };
 
-module.exports = { crearUsuario, loginUser, logout, eliminarUsuario, usuarioPorUsername, usuarios };
+
+const editarUsuario = async (req, res) => {
+  try {
+    const { id, username, name, lastname, email, password } = req.body;
+    const user = req.user.id;
+
+    if (!id || !lastname || !name || !email) {
+      return res.status(400).json({ msg: "Es requerido completar estos campos" });
+    }
+
+    const match = await Usuario.findByPk(id);
+    if (!match) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    if (match.id_user !== user) {
+      match.flat();
+      console.log({match: match, user})
+      return res.status(403).json({ msg: "No tienes permisos para editar este usuario" });
+    }
+
+    await match.update({
+      username,
+      email,
+      name,
+      lastname,
+      password
+    });
+
+    return res.json({ msg: "Usuario actualizado correctamente", user: match });
+    
+  } catch (err) {
+    console.error("Error en editarUsuario:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ msg: "Error al editar el usuario" });
+    }
+  }
+};
+
+module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario}

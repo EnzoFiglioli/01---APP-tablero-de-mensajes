@@ -16,9 +16,4 @@ const obtenerCategorias = async (req, res) => {
   }
 };
 
-
-function funciona(req,res){
-  res.json({msg:"HOla"})
-}
-
-module.exports = {obtenerCategorias, funciona}
+module.exports = {obtenerCategorias}

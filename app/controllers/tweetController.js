@@ -1,8 +1,4 @@
-const {Usuario} = require("../models/Usuario.js");
-const {Tweet}  = require("../models/Tweet.js");
-const Categoria = require("../models/Categoria.js");
 const { sequelize } = require("../config/sequelize.js");
-const jwt = require("jsonwebtoken")
 
 async function crearTweet(req, res) {
     try {
@@ -13,12 +9,10 @@ async function crearTweet(req, res) {
 
         const { content, categoria } = req.body;
 
-        // Validar el contenido
         if (!content || typeof content !== "string" || content.trim() === "") {
             return res.status(400).json({ message: "Faltan datos necesarios o contenido inválido." });
         }
 
-        // Crear el tweet de forma segura
         const tweet = await sequelize.query(
             "INSERT INTO Tweets (id_user, content, categoria, image) VALUES (?, ?, ?, ?);",
             {
@@ -39,13 +33,17 @@ async function crearTweet(req, res) {
 }
 
 const obtenerTweets = async (req, res) => {
+    const user = req.user.id
     try {
-        const tweets = await sequelize.query(`
-            SELECT t.id_tweet, c.nombre as categoria, u.username, u.name, u.lastname, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
-            INNER JOIN Categoria c on t.categoria = id_categoria
-            INNER JOIN Usuarios u on u.id_user = t.id_user
-            ORDER BY t.createdAt DESC;
-            `,{type: sequelize.QueryTypes.SELECT})
+        const tweets = await sequelize.query(
+           `SELECT t.id_tweet, c.nombre AS categoria,u.username,u.name,u.lastname,t.content,t.createdAt, u.avatar,COUNT(DISTINCT l.id_user) AS likes, CASE WHEN EXISTS (SELECT 1 FROM Likes l2 WHERE l2.id_tweet = t.id_tweet AND l2.id_user = :user) THEN 1 ELSE 0 END AS le_dio_like
+           FROM Tweets t
+           INNER JOIN Categoria c ON t.categoria = c.id_categoria
+           INNER JOIN Usuarios u ON u.id_user = t.id_user
+           LEFT JOIN Likes l ON l.id_tweet = t.id_tweet
+           GROUP BY t.id_tweet, c.nombre, u.username, u.name, u.lastname, t.content, t.createdAt, u.avatar
+           ORDER BY t.createdAt DESC;`
+        ,{replacements:{user},type: sequelize.QueryTypes.SELECT})
 
         if (tweets.length > 0) {
             const tweetsList = tweets.map((i)=>(
@@ -57,11 +55,13 @@ const obtenerTweets = async (req, res) => {
                     categoria: i.categoria,
                     username: i.username,
                     content: i.content,
-                    avatar: i.avatar
+                    avatar: i.avatar,
+                    likes: i.likes,
+                    likeActive: i.le_dio_like
                 }));
             return res.json(tweetsList);
         } else {
-            return res.status(204).json({ msg: "No se encontraron tweets, sé el primero." });
+            return res.status(200).json({ msg: "No se encontraron tweets, sé el primero." });
         }
     } catch (error) {
         console.error("Error al obtener los tweets:", error);
@@ -103,31 +103,57 @@ const eliminarTweet = async (req,res)=>{
     }
 }
 
-const obtenerTweetsID = async(req,res)=>{
-    try{
+const obtenerTweetsID = async (req, res) => {
+    try {
         const username = req.params.username;
-        const query = await sequelize.query(`SELECT t.id_tweet, c.nombre as categoria, u.username, t.content, t.createdAt, u.avatar as avatar FROM Tweets t
-            INNER JOIN Categoria c on t.categoria = id_categoria
-            INNER JOIN Usuarios u on u.id_user = t.id_user
-            WHERE u.username = "${username}"
-            ORDER BY t.createdAt DESC;`,{type:sequelize.QueryTypes.SELECT});
-            if (query.length > 0) {
-                const tweetsList = query.map((i)=>(
-                    {
-                        createdAt : i.createdAt,
-                        id_tweet: i.id_tweet,
-                        categoria: i.categoria,
-                        username: i.username,
-                        content: i.content,
-                        avatar: i.avatar
-                    }));
-                return res.json(tweetsList);
-            }
-        res.status(404).json({msg:`No se encontro ningun usuario con el nombre ${username}`});
-    }catch(err){
+        const query = await sequelize.query(
+            `SELECT 
+                t.id_tweet, 
+                c.nombre AS categoria,
+                u.username,
+                u.name,
+                u.lastname,
+                t.content,
+                t.createdAt, 
+                u.avatar,
+                COUNT(DISTINCT l.id_user) AS likes, CASE WHEN EXISTS (
+                    SELECT 1 
+                    FROM Likes l2 
+                    WHERE l2.id_tweet = t.id_tweet AND l2.id_user = (
+                        SELECT id_user 
+                        FROM Usuarios 
+                        WHERE username = :username
+                        )
+                    ) THEN 1 ELSE 0 END AS le_dio_like
+            FROM Tweets t
+            INNER JOIN Categoria c ON t.categoria = c.id_categoria
+            INNER JOIN Usuarios u ON u.id_user = t.id_user
+            LEFT JOIN Likes l ON l.id_tweet = t.id_tweet
+            GROUP BY t.id_tweet, c.nombre, u.username, u.name, u.lastname, t.content, t.createdAt, u.avatar
+            HAVING u.username = :username
+            ORDER BY t.createdAt DESC;`, { replacements:{username}, type: sequelize.QueryTypes.SELECT });
+
+        if (query.length > 0) {
+            const tweetsList = query.map(i => ({
+                createdAt : i.createdAt,
+                id_tweet: i.id_tweet,
+                name: i.name,
+                lastname: i.lastname,
+                categoria: i.categoria,
+                username: i.username,
+                content: i.content,
+                avatar: i.avatar,
+                likes: i.likes,
+                likeActive: i.le_dio_like
+            }));
+            return res.json(tweetsList);
+        } else {
+            return res.json([]);
+        }
+    } catch (err) {
         console.log(err);
-        res.status(500).json({msg:`Error interno al obtener tweets para el usuario: ${err}`});
+        res.status(500).json({ msg: `Error interno al obtener tweets para el usuario: ${err}` });
     }
-}
+};
 
 module.exports = { crearTweet, obtenerTweets, hashtagsTweets, eliminarTweet, obtenerTweetsID };

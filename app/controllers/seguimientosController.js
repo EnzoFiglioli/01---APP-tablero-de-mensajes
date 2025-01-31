@@ -74,7 +74,6 @@ async function crearSeguidor(req, res) {
     }
 }
 
-
 const seguimientosUsuariosCantidad = async (req, res) => {
     try {
         const userActive = req.user.id;
