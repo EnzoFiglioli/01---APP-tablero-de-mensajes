@@ -7,7 +7,7 @@ async function crearTweet(req, res) {
             return res.status(401).json({ message: "Usuario no autenticado." });
         }
 
-        const { content, categoria } = req.body;
+        const { content, categoria, image} = req.body;
 
         if (!content || typeof content !== "string" || content.trim() === "") {
             return res.status(400).json({ message: "Faltan datos necesarios o contenido inválido." });
@@ -16,7 +16,7 @@ async function crearTweet(req, res) {
         const tweet = await sequelize.query(
             "INSERT INTO Tweets (id_user, content, categoria, image) VALUES (?, ?, ?, ?);",
             {
-                replacements: [userActive, content.trim(), categoria, ""],
+                replacements: [userActive, content.trim(), categoria, image],
                 type: sequelize.QueryTypes.INSERT,
             }
         );
