@@ -37,6 +37,15 @@ const Usuario = sequelize.define('Usuario', {
         type: DataTypes.STRING(100),
         allowNull: true,
         defaultValue: avatar
+    },
+    verification: {
+        type: DataTypes.TINYINT,
+        allowNull: true,
+        defaultValue: 0
+    },
+    bio:{
+        type: DataTypes.STRING(255),
+        allowNull: true
     }
 }, {
     tableName: 'Usuarios'

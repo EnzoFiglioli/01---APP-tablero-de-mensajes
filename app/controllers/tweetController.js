@@ -36,7 +36,7 @@ const obtenerTweets = async (req, res) => {
     const user = req.user.id
     try {
         const tweets = await sequelize.query(
-           `SELECT t.id_tweet, c.nombre AS categoria,u.username,u.name,u.lastname,t.content,t.createdAt, u.avatar,COUNT(DISTINCT l.id_user) AS likes, CASE WHEN EXISTS (SELECT 1 FROM Likes l2 WHERE l2.id_tweet = t.id_tweet AND l2.id_user = :user) THEN 1 ELSE 0 END AS le_dio_like
+           `SELECT t.id_tweet, t.image, c.nombre AS categoria,u.username,u.name,u.lastname, u.verification,t.content,t.createdAt, u.avatar,COUNT(DISTINCT l.id_user) AS likes, CASE WHEN EXISTS (SELECT 1 FROM Likes l2 WHERE l2.id_tweet = t.id_tweet AND l2.id_user = :user) THEN 1 ELSE 0 END AS le_dio_like
            FROM Tweets t
            INNER JOIN Categoria c ON t.categoria = c.id_categoria
            INNER JOIN Usuarios u ON u.id_user = t.id_user
@@ -57,7 +57,9 @@ const obtenerTweets = async (req, res) => {
                     content: i.content,
                     avatar: i.avatar,
                     likes: i.likes,
-                    likeActive: i.le_dio_like
+                    likeActive: i.le_dio_like,
+                    image:i.image,
+                    verfication: i.verification
                 }));
             return res.json(tweetsList);
         } else {
@@ -111,6 +113,7 @@ const obtenerTweetsID = async (req, res) => {
                 t.id_tweet, 
                 c.nombre AS categoria,
                 u.username,
+                u.verification,
                 u.name,
                 u.lastname,
                 t.content,
@@ -144,7 +147,8 @@ const obtenerTweetsID = async (req, res) => {
                 content: i.content,
                 avatar: i.avatar,
                 likes: i.likes,
-                likeActive: i.le_dio_like
+                likeActive: i.le_dio_like,
+                verfication: i.verification
             }));
             return res.json(tweetsList);
         } else {
