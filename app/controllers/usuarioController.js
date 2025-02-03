@@ -162,10 +162,10 @@ const usuarioPorUsername = async (req, res) => {
 
 const editarUsuario = async (req, res) => {
   try {
-    const { id, username, name, lastname, email, password } = req.body;
+    const { id, username, name, lastname, email, password, link, bio, ciudad } = req.body;
     const user = req.user.id;
 
-    if (!id || !lastname || !name || !email) {
+    if (!id || !lastname || !name || !email ) {
       return res.status(400).json({ msg: "Es requerido completar estos campos" });
     }
 
@@ -185,7 +185,10 @@ const editarUsuario = async (req, res) => {
       email,
       name,
       lastname,
-      password
+      password,
+      link,
+      bio,
+      ciudad
     });
 
     return res.json({ msg: "Usuario actualizado correctamente", user: match });
