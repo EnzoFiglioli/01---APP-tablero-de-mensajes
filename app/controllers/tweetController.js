@@ -115,6 +115,7 @@ const obtenerTweetsID = async (req, res) => {
                 u.username,
                 u.verification,
                 u.name,
+                t.image,
                 u.lastname,
                 t.content,
                 t.createdAt, 
@@ -148,7 +149,8 @@ const obtenerTweetsID = async (req, res) => {
                 avatar: i.avatar,
                 likes: i.likes,
                 likeActive: i.le_dio_like,
-                verfication: i.verification
+                verfication: i.verification,
+                image:i.image,
             }));
             return res.json(tweetsList);
         } else {
