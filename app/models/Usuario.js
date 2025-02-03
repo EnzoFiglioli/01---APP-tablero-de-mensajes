@@ -46,6 +46,10 @@ const Usuario = sequelize.define('Usuario', {
     bio:{
         type: DataTypes.STRING(255),
         allowNull: true
+    },
+    link:{
+        type: DataTypes.STRING(255),
+        allowNull: true
     }
 }, {
     tableName: 'Usuarios'

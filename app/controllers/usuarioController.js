@@ -151,8 +151,8 @@ const usuarioPorUsername = async (req, res) => {
       lastname: user.lastname,
       avatar: user.avatar,
       verification: user.verification,
-      bio: user.bio
-
+      bio: user.bio,
+      link: user.link
     });
   } catch (err) {
     res.status(500).json({ msg: `Error interno al traer usuario por username: ${err}` });
