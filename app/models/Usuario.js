@@ -50,6 +50,10 @@ const Usuario = sequelize.define('Usuario', {
     link:{
         type: DataTypes.STRING(255),
         allowNull: true
+    },
+    ciudad: {
+        type: DataTypes.STRING(100),
+        allowNull: true
     }
 }, {
     tableName: 'Usuarios'

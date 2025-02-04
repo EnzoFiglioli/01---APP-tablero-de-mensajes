@@ -152,7 +152,8 @@ const usuarioPorUsername = async (req, res) => {
       avatar: user.avatar,
       verification: user.verification,
       bio: user.bio,
-      link: user.link
+      link: user.link,
+      ciudad: user.ciudad
     });
   } catch (err) {
     res.status(500).json({ msg: `Error interno al traer usuario por username: ${err}` });
@@ -164,7 +165,7 @@ const editarUsuario = async (req, res) => {
   try {
     const { id, username, name, lastname, email, password, link, bio, ciudad } = req.body;
     const user = req.user.id;
-
+    console.log(req.body.ciudad);
     if (!id || !lastname || !name || !email ) {
       return res.status(400).json({ msg: "Es requerido completar estos campos" });
     }
