@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const { sequelize } = require("../config/sequelize.js");
 const { Likes } = require("../models/Likes.js");
 const { Tweet } = require("../models/Tweet.js");
+const nodeMailer = require("nodemailer");
 dotenv.config();
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -186,7 +187,6 @@ const editarUsuario = async (req, res) => {
       email,
       name,
       lastname,
-      password,
       link,
       bio,
       ciudad
@@ -202,4 +202,57 @@ const editarUsuario = async (req, res) => {
   }
 };
 
-module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario}
+const resetPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const userExists = await Usuario.findOne({ where: { email: email } });
+    
+    if (userExists) {
+      const transporter = nodeMailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        secure: true,
+        port: 465,
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      transporter.sendMail({
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Cambio de contraseña",
+        html: `
+        <div style="font-family: Arial, sans-serif; padding: 40px; text-align: center; background-color: #f4f7fc; background-size: cover; background-position: center;">
+  <div style="background-color: rgba(255, 255, 255, 0.8); border-radius: 15px; padding: 40px; max-width: 600px; margin: 0 auto;">
+    <h1 style="font-size: 28px; color: #4A90E2; font-weight: bold;">¡Hola ${userExists.name} ${userExists.lastname}!</h1>
+    <p style="font-size: 18px; color: #333333; line-height: 1.6; margin-top: 20px;">Soy <strong>Enzo Figlioli</strong>, creador de <strong>Tabl3ro</strong>.</p>
+    <p style="font-size: 16px; color: #333333; line-height: 1.6;">Recibimos una solicitud para cambiar la contraseña de tu cuenta.</p>
+    <p style="font-size: 16px; color: #333333; line-height: 1.6;">Si no fuiste tú, simplemente ignora este mensaje.</p>
+    <p style="font-size: 16px; color: #333333; line-height: 1.6;">Si fuiste tú, haz clic en el siguiente enlace para cambiar tu contraseña:</p>
+    <a href="https://tabl3ro.vercel.app/reset-password/${userExists.id}" style="display: inline-block; padding: 12px 30px; background-color: #4A90E2; color: white; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 5px; margin-top: 20px;">Cambiar Contraseña</a>
+    <p style="font-size: 16px; color: #333333; margin-top: 30px; line-height: 1.6;">¡Gracias por usar <strong>Tabl3ro</strong>! Estamos aquí para ayudarte en lo que necesites.</p>
+  </div>
+</div>
+
+        `,
+      }, (error, info) => {
+        if (error) {
+          console.log("Error al enviar el correo:", error);
+          return res.status(500).json({ msg: "Error al enviar el correo" });
+        } else {
+          return res.status(200).json({ msg: "Correo enviado" });
+        }
+      });
+    } else {
+      res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+  } catch (error) {
+    console.log("Error en la solicitud:", error);
+    res.status(500).json({ msg: "Error al enviar el correo" });
+  }
+};
+
+
+module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario, resetPassword}
