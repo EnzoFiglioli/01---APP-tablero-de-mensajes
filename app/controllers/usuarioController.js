@@ -203,9 +203,10 @@ const editarUsuario = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => {
-  const { email } = req.body;
   try {
+    const { email } = req.body;
     const userExists = await Usuario.findOne({ where: { email: email } });
+    const encriptado = jwt.sign({ userId: userExists.id }, process.env.JWT_SECRET,{ expiresIn: '1h' });
     
     if (userExists) {
       const transporter = nodeMailer.createTransport({
@@ -231,7 +232,7 @@ const resetPassword = async (req, res) => {
     <p style="font-size: 16px; color: #333333; line-height: 1.6;">Recibimos una solicitud para cambiar la contraseña de tu cuenta.</p>
     <p style="font-size: 16px; color: #333333; line-height: 1.6;">Si no fuiste tú, simplemente ignora este mensaje.</p>
     <p style="font-size: 16px; color: #333333; line-height: 1.6;">Si fuiste tú, haz clic en el siguiente enlace para cambiar tu contraseña:</p>
-    <a href="https://tabl3ro.vercel.app/reset-password/${userExists.id}" style="display: inline-block; padding: 12px 30px; background-color: #4A90E2; color: white; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 5px; margin-top: 20px;">Cambiar Contraseña</a>
+    <a href="https://tabl3ro.vercel.app/reset-password/${encriptado}" style="display: inline-block; padding: 12px 30px; background-color: #4A90E2; color: white; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 5px; margin-top: 20px;">Cambiar Contraseña</a>
     <p style="font-size: 16px; color: #333333; margin-top: 30px; line-height: 1.6;">¡Gracias por usar <strong>Tabl3ro</strong>! Estamos aquí para ayudarte en lo que necesites.</p>
   </div>
 </div>
@@ -253,6 +254,5 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ msg: "Error al enviar el correo" });
   }
 };
-
 
 module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario, resetPassword}
