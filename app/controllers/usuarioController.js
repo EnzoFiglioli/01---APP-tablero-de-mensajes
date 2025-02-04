@@ -204,10 +204,11 @@ const editarUsuario = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
+    const baseDir = "http://localhost:5173" // || "https://tabl3ro.vercel.app"; 
     const { email } = req.body;
     const userExists = await Usuario.findOne({ where: { email: email } });
-    const encriptado = jwt.sign({ userId: userExists.id }, process.env.JWT_SECRET,{ expiresIn: '1h' });
-    
+    const encriptado = jwt.sign({id: userExists.id_user}, process.env.SECRET_KEY, {expiresIn: "1h"});
+
     if (userExists) {
       const transporter = nodeMailer.createTransport({
         service: "gmail",
@@ -232,7 +233,7 @@ const resetPassword = async (req, res) => {
     <p style="font-size: 16px; color: #333333; line-height: 1.6;">Recibimos una solicitud para cambiar la contraseña de tu cuenta.</p>
     <p style="font-size: 16px; color: #333333; line-height: 1.6;">Si no fuiste tú, simplemente ignora este mensaje.</p>
     <p style="font-size: 16px; color: #333333; line-height: 1.6;">Si fuiste tú, haz clic en el siguiente enlace para cambiar tu contraseña:</p>
-    <a href="https://tabl3ro.vercel.app/reset-password/${encriptado}" style="display: inline-block; padding: 12px 30px; background-color: #4A90E2; color: white; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 5px; margin-top: 20px;">Cambiar Contraseña</a>
+    <a href="${baseDir}/reset_password/${encriptado}" style="display: inline-block; padding: 12px 30px; background-color: #4A90E2; color: white; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 5px; margin-top: 20px;">Cambiar Contraseña</a>
     <p style="font-size: 16px; color: #333333; margin-top: 30px; line-height: 1.6;">¡Gracias por usar <strong>Tabl3ro</strong>! Estamos aquí para ayudarte en lo que necesites.</p>
   </div>
 </div>
@@ -254,5 +255,41 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ msg: "Error al enviar el correo" });
   }
 };
+const cambiarPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { auth } = req.params;
 
-module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario, resetPassword}
+    // Step 1: Verify the JWT token
+    let token;
+    try {
+      token = jwt.verify(auth, process.env.SECRET_KEY);
+    } catch (error) {
+      return res.status(400).json({ msg: "Token no válido o expirado" });
+    }
+
+    // Step 2: Find the user associated with the token
+    const user = await Usuario.findByPk(token.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    // Step 3: Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Step 4: Update the user's password
+    await user.update({ password: hashedPassword });
+
+    // Step 5: Return a success message
+    return res.status(200).json({ msg: "Contraseña cambiada correctamente" });
+
+  } catch (error) {
+    console.error("Error al cambiar la contraseña:", error);
+    return res.status(500).json({ msg: "Error al cambiar la contraseña" });
+  }
+};
+
+
+module.exports = {crearUsuario,loginUser,logout,eliminarUsuario, usuarioPorUsername,usuarios, editarUsuario, resetPassword, cambiarPassword}

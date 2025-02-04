@@ -1,5 +1,5 @@
 const express = require("express");
-const {crearUsuario, loginUser, logout, usuarios, eliminarUsuario, usuarioPorUsername, editarUsuario, resetPassword} = require("../controllers/usuarioController.js");
+const {crearUsuario, loginUser, logout, usuarios, eliminarUsuario, usuarioPorUsername, editarUsuario, resetPassword, cambiarPassword} = require("../controllers/usuarioController.js");
 const {verifyToken} = require("../middleware/auth.js");
 const { crearSeguidor, seguimientosUsuariosCantidad } = require("../controllers/seguimientosController.js");
 const route = express.Router();
@@ -13,6 +13,7 @@ route.patch("/editar", verifyToken, editarUsuario);
 route.get("/:username", verifyToken, usuarioPorUsername);
 route.post("/follow", verifyToken, crearSeguidor);
 route.get("/follow/info/:username", verifyToken, seguimientosUsuariosCantidad);
-route.patch("/reset-password", resetPassword);
+route.post("/reset-password", resetPassword);
+route.patch("/reset_password/:auth", cambiarPassword);
 
 module.exports = route;
