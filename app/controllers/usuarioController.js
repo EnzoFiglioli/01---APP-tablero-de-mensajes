@@ -204,7 +204,7 @@ const editarUsuario = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const baseDir = "http://localhost:5173" // || "https://tabl3ro.vercel.app"; 
+    const baseDir = "https://tabl3ro.vercel.app"; // ruta del envio de mail
     const { email } = req.body;
     const userExists = await Usuario.findOne({ where: { email: email } });
     const encriptado = jwt.sign({id: userExists.id_user}, process.env.SECRET_KEY, {expiresIn: "1h"});
